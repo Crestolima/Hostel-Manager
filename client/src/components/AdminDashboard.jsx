@@ -1,7 +1,36 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, IconButton, Drawer, List, ListItem, ListItemIcon, ListItemText, CssBaseline, Typography, Divider, Box } from '@mui/material';
-import { Menu as MenuIcon, Home as HomeIcon, AccountCircle as AccountCircleIcon, Settings as SettingsIcon, Logout as LogoutIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from '@mui/icons-material';
-import { styled } from '@mui/system';
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  CssBaseline,
+  Typography,
+  Divider,
+  Box,
+  InputBase,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+} from '@mui/material';
+import {
+  Menu as MenuIcon,
+  Home as HomeIcon,
+  AccountCircle as AccountCircleIcon,
+  Settings as SettingsIcon,
+  Logout as LogoutIcon,
+  ChevronRight as ChevronRightIcon,
+  Search as SearchIcon,
+} from '@mui/icons-material';
+import { styled, alpha } from '@mui/system';
+import { useNavigate } from 'react-router-dom';
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 60;
@@ -21,6 +50,8 @@ const DrawerContainer = styled(Drawer)(({ theme, open }) => ({
       duration: theme.transitions.duration.enteringScreen,
     }),
     overflowX: 'hidden',
+    backgroundColor: theme.palette.primary.dark, // Sidebar color
+    color: '#fff', // Sidebar text color
   },
 }));
 
@@ -42,59 +73,147 @@ const ToggleButtonContainer = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   height: '64px', // Same as the height of AppBar
-  backgroundColor: theme.palette.background.default,
+  backgroundColor: theme.palette.primary.main,
+  fontSize: '1.5rem',
+  fontWeight: 'bold',
+  color: '#fff',
+  cursor: 'pointer',
+  '&:hover': {
+    backgroundColor: theme.palette.primary.light,
+  },
+}));
+
+const Search = styled('div')(({ theme }) => ({
+  position: 'relative',
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.common.white, 0.25),
+  },
+  marginLeft: 0,
+  width: '100%',
+  [theme.breakpoints.up('sm')]: {
+    marginLeft: theme.spacing(1),
+    width: 'auto',
+  },
+}));
+
+const SearchIconWrapper = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: '100%',
+  position: 'absolute',
+  pointerEvents: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}));
+
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: 'inherit',
+  '& .MuiInputBase-input': {
+    padding: theme.spacing(1, 1, 1, 0),
+    // vertical padding + font size from searchIcon
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      width: '12ch',
+      '&:focus': {
+        width: '20ch',
+      },
+    },
+  },
 }));
 
 const AdminDashboard = () => {
   const [open, setOpen] = useState(true);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleDrawerToggle = () => {
     setOpen(!open);
+  };
+
+  const handleLogoutClick = () => {
+    setLogoutDialogOpen(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setLogoutDialogOpen(false);
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
+  const handleLogoutCancel = () => {
+    setLogoutDialogOpen(false);
   };
 
   return (
     <MainContainer>
       <CssBaseline />
       <DrawerContainer variant="permanent" open={open}>
-        <ToggleButtonContainer>
-          <IconButton onClick={handleDrawerToggle}>
-            {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-          </IconButton>
+        <ToggleButtonContainer onClick={handleDrawerToggle}>
+          {open ? 'HostelManager' : <ChevronRightIcon />}
         </ToggleButtonContainer>
         <Divider />
         <List>
           <ListItem button>
-            <ListItemIcon><HomeIcon /></ListItemIcon>
+            <ListItemIcon><HomeIcon style={{ color: '#fff' }} /></ListItemIcon>
             {open && <ListItemText primary="Home" />}
           </ListItem>
           <ListItem button>
-            <ListItemIcon><AccountCircleIcon /></ListItemIcon>
+            <ListItemIcon><AccountCircleIcon style={{ color: '#fff' }} /></ListItemIcon>
             {open && <ListItemText primary="Profile" />}
           </ListItem>
           <ListItem button>
-            <ListItemIcon><SettingsIcon /></ListItemIcon>
+            <ListItemIcon><SettingsIcon style={{ color: '#fff' }} /></ListItemIcon>
             {open && <ListItemText primary="Settings" />}
-          </ListItem>
-          <ListItem button>
-            <ListItemIcon><LogoutIcon /></ListItemIcon>
-            {open && <ListItemText primary="Logout" />}
           </ListItem>
         </List>
       </DrawerContainer>
       <AppBarContainer position="fixed" open={open}>
         <Toolbar>
-          <IconButton color="inherit" aria-label="open drawer" onClick={handleDrawerToggle} edge="start">
-            
-          </IconButton>
           <Typography variant="h6" noWrap>
             Admin Dashboard
           </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <Search>
+            <SearchIconWrapper>
+              <SearchIcon />
+            </SearchIconWrapper>
+            <StyledInputBase
+              placeholder="Search…"
+              inputProps={{ 'aria-label': 'search' }}
+            />
+          </Search>
+          <IconButton color="inherit" onClick={handleLogoutClick}>
+            <LogoutIcon />
+          </IconButton>
         </Toolbar>
       </AppBarContainer>
       <MainContent open={open}>
         <Typography variant="h4">Welcome, Admin!</Typography>
         {/* Additional content can be added here */}
       </MainContent>
+      <Dialog
+        open={logoutDialogOpen}
+        onClose={handleLogoutCancel}
+      >
+        <DialogTitle>Confirm Logout</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to logout?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleLogoutCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleLogoutConfirm} color="primary">
+            Logout
+          </Button>
+        </DialogActions>
+      </Dialog>
     </MainContainer>
   );
 };

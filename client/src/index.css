@@ -1,0 +1,8 @@
+.main-content {
+    margin-left: 240px; /* This should match the width of the expanded drawer */
+    padding: 16px;
+  }
+  
+  .main-content.collapsed {
+    margin-left: 60px; /* This should match the width of the collapsed drawer */
+  }

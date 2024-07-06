@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -29,15 +29,19 @@ import {
   ChevronRight as ChevronRightIcon,
   Search as SearchIcon,
 } from '@mui/icons-material';
-import { styled, alpha } from '@mui/system';
-import { useNavigate } from 'react-router-dom';
+import { styled, alpha } from '@mui/material/styles';
+import { useNavigate, Link, Outlet } from 'react-router-dom';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 60;
 
 const MainContainer = styled('div')(({ theme }) => ({
   display: 'flex',
+  flexDirection: 'column',
   height: '100vh',
+  width: '100%',
 }));
 
 const DrawerContainer = styled(Drawer)(({ theme, open }) => ({
@@ -50,21 +54,33 @@ const DrawerContainer = styled(Drawer)(({ theme, open }) => ({
       duration: theme.transitions.duration.enteringScreen,
     }),
     overflowX: 'hidden',
-    backgroundColor: theme.palette.primary.dark, // Sidebar color
-    color: '#fff', // Sidebar text color
   },
 }));
 
 const AppBarContainer = styled(AppBar)(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
+  transition: theme.transitions.create(['width', 'margin'], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
   marginLeft: open ? drawerWidth : collapsedDrawerWidth,
   width: `calc(100% - ${open ? drawerWidth : collapsedDrawerWidth}px)`,
+  transition: theme.transitions.create('width', {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
+  }),
 }));
 
 const MainContent = styled('main')(({ theme, open }) => ({
   flexGrow: 1,
   padding: theme.spacing(3),
   marginLeft: open ? drawerWidth : collapsedDrawerWidth,
+  transition: theme.transitions.create('margin', {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  display: 'flex',
+  flexDirection: 'column',
   marginTop: theme.spacing(8),
 }));
 
@@ -72,7 +88,7 @@ const ToggleButtonContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  height: '64px', // Same as the height of AppBar
+  height: '64px',
   backgroundColor: theme.palette.primary.main,
   fontSize: '1.5rem',
   fontWeight: 'bold',
@@ -112,7 +128,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: 'inherit',
   '& .MuiInputBase-input': {
     padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create('width'),
     width: '100%',
@@ -129,6 +144,12 @@ const AdminDashboard = () => {
   const [open, setOpen] = useState(true);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
+
+  useEffect(() => {
+    setOpen(!isSmallScreen);
+  }, [isSmallScreen]);
 
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -148,6 +169,12 @@ const AdminDashboard = () => {
     setLogoutDialogOpen(false);
   };
 
+  const menuItems = [
+    { text: 'Dashboard', icon: <HomeIcon />, path: 'dashboard' },
+    { text: 'Add User', icon: <AccountCircleIcon />, path: 'add-user' },
+    { text: 'Add Room', icon: <SettingsIcon />, path: 'add-room' },
+  ];
+
   return (
     <MainContainer>
       <CssBaseline />
@@ -157,18 +184,12 @@ const AdminDashboard = () => {
         </ToggleButtonContainer>
         <Divider />
         <List>
-          <ListItem button>
-            <ListItemIcon><HomeIcon style={{ color: '#fff' }} /></ListItemIcon>
-            {open && <ListItemText primary="Home" />}
-          </ListItem>
-          <ListItem button>
-            <ListItemIcon><AccountCircleIcon style={{ color: '#fff' }} /></ListItemIcon>
-            {open && <ListItemText primary="Profile" />}
-          </ListItem>
-          <ListItem button>
-            <ListItemIcon><SettingsIcon style={{ color: '#fff' }} /></ListItemIcon>
-            {open && <ListItemText primary="Settings" />}
-          </ListItem>
+          {menuItems.map((item, index) => (
+            <ListItem button component={Link} to={item.path} key={index}>
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              {open && <ListItemText primary={item.text} />}
+            </ListItem>
+          ))}
         </List>
       </DrawerContainer>
       <AppBarContainer position="fixed" open={open}>
@@ -192,13 +213,9 @@ const AdminDashboard = () => {
         </Toolbar>
       </AppBarContainer>
       <MainContent open={open}>
-        <Typography variant="h4">Welcome, Admin!</Typography>
-        {/* Additional content can be added here */}
+        <Outlet />
       </MainContent>
-      <Dialog
-        open={logoutDialogOpen}
-        onClose={handleLogoutCancel}
-      >
+      <Dialog open={logoutDialogOpen} onClose={handleLogoutCancel}>
         <DialogTitle>Confirm Logout</DialogTitle>
         <DialogContent>
           <DialogContentText>

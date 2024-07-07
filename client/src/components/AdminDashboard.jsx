@@ -92,13 +92,14 @@ const ToggleButtonContainer = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   height: '64px',
-  backgroundColor: theme.palette.primary.main,
+  //backgroundColor: theme.palette.primary.main,
   fontSize: '1.5rem',
   fontWeight: 'bold',
-  color: '#fff',
+  color: '#000',
   cursor: 'pointer',
   '&:hover': {
-    backgroundColor: theme.palette.primary.light,
+    backgroundColor: theme.palette.primary.main,
+    color: '#fff',
   },
 }));
 

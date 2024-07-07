@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
     animation: '$fadeIn 1s ease-in-out',
   },
   loginCard: {
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Gradient background
+    background: 'linear-gradient()', // Gradient background
     borderRadius: theme.spacing(2),
     padding: theme.spacing(4),
     display: 'flex',

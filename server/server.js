@@ -170,6 +170,27 @@ app.put('/api/users/:id', authenticateJWT, async (req, res) => {
   }
 });
 
+app.get('/api/dashboard-data', async (req, res) => {
+  try {
+    const residence = await User.countDocuments({});
+    const rooms = await Room.countDocuments({});
+    const totalCapacity = await Room.aggregate([{ $group: { _id: null, total: { $sum: "$roomCapacity" } } }]);
+    const totalBookings = await Booking.countDocuments({});
+    const vacancy = totalCapacity[0].total - totalBookings;
+
+    const data = {
+      residence,
+      rooms,
+      totalCapacity: totalCapacity[0].total,
+      vacancy,
+    };
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json('Error fetching dashboard data: ' + err.message);
+  }
+});
+
 // Delete a user
 app.delete('/api/users/:id', authenticateJWT, async (req, res) => {
   const { id } = req.params;

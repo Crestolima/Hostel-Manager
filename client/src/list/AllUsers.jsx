@@ -11,22 +11,22 @@ const AllUsers = () => {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get('/api/users');
-      if (response.status === 200 && Array.isArray(response.data)) {
-        setUsers(response.data);
-      } else {
-        console.error('Unexpected API response:', response);
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/users'); // Ensure this URL is correct
+        if (response.status === 200 && Array.isArray(response.data)) {
+          setUsers(response.data);
+        } else {
+          console.error('Unexpected API response:', response);
+          setUsers([]);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
         setUsers([]);
       }
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      setUsers([]);
-    }
-  };
-  fetchUsers();
-}, []);
+    };
+    fetchUsers();
+  }, []);
 
   const handleModify = (userId) => {
     // Implement user modification logic here

@@ -34,21 +34,23 @@ const IconContainer = styled('div')({
   alignItems: 'center'
 });
 
-const DataText = styled(Typography)({
+const DataText = styled(Typography)(({ color }) => ({
   position: 'absolute',
   bottom: '10px',
   right: '10px',
   fontSize: '24px',
-  fontWeight: 'bold'
-});
+  fontWeight: 'bold',
+  color: color,
+}));
 
-const TitleText = styled(Typography)({
+const TitleText = styled(Typography)(({ color }) => ({
   position: 'absolute',
   top: '10px',
   right: '10px',
   fontSize: '14px',
-  fontWeight: 'normal'
-});
+  fontWeight: 'normal',
+  color: color,
+}));
 
 const Dashboard = () => {
   const [data, setData] = useState({
@@ -77,37 +79,37 @@ const Dashboard = () => {
         <Grid item xs={12} sm={6} md={3}>
           <DashboardCard>
             <IconContainer>
-              <GroupAddIcon fontSize="large" style={{ fontSize: 40 }} />
+              <GroupAddIcon fontSize="large" style={{ fontSize: 40, color: '#f44336' }} />
             </IconContainer>
-            <TitleText variant="subtitle1">Residence</TitleText>
-            <DataText variant="h4">{data.residence}</DataText>
+            <TitleText variant="subtitle1" color="#f44336">Residence</TitleText>
+            <DataText variant="h4" color="#f44336">{data.residence}</DataText>
           </DashboardCard>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <DashboardCard>
             <IconContainer>
-              <KeyIcon fontSize="large" style={{ fontSize: 40 }} />
+              <KeyIcon fontSize="large" style={{ fontSize: 40, color: '#2196f3' }} />
             </IconContainer>
-            <TitleText variant="subtitle1">Rooms</TitleText>
-            <DataText variant="h4">{data.rooms}</DataText>
+            <TitleText variant="subtitle1" color="#2196f3">Rooms</TitleText>
+            <DataText variant="h4" color="#2196f3">{data.rooms}</DataText>
           </DashboardCard>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <DashboardCard>
             <IconContainer>
-              <StorageIcon fontSize="large" style={{ fontSize: 40 }} />
+              <StorageIcon fontSize="large" style={{ fontSize: 40, color: '#4caf50' }} />
             </IconContainer>
-            <TitleText variant="subtitle1">Total Capacity</TitleText>
-            <DataText variant="h4">{data.totalCapacity}</DataText>
+            <TitleText variant="subtitle1" color="#4caf50">Total Capacity</TitleText>
+            <DataText variant="h4" color="#4caf50">{data.totalCapacity}</DataText>
           </DashboardCard>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <DashboardCard>
             <IconContainer>
-              <HourglassEmptyIcon fontSize="large" style={{ fontSize: 40 }} />
+              <HourglassEmptyIcon fontSize="large" style={{ fontSize: 40, color: '#ff9800' }} />
             </IconContainer>
-            <TitleText variant="subtitle1">Vacancy</TitleText>
-            <DataText variant="h4">{data.vacancy}</DataText>
+            <TitleText variant="subtitle1" color="#ff9800">Vacancy</TitleText>
+            <DataText variant="h4" color="#ff9800">{data.vacancy}</DataText>
           </DashboardCard>
         </Grid>
       </Grid>

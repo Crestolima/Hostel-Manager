@@ -1,24 +1,20 @@
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-  firstName: { type: String, required: true, trim: true },
-  initial: { type: String, trim: true },
-  lastName: { type: String, required: true, trim: true },
-  phoneNo: { type: String, required: true, unique: true, trim: true },
-  email: { type: String, required: true, unique: true, trim: true },
+const UserSchema = new mongoose.Schema({
+  firstName: { type: String, required: true },
+  initial: { type: String, required: true },
+  lastName: { type: String, required: true },
+  phoneNo: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
   dateOfBirth: { type: Date, required: true },
   course: { type: String, required: true },
   year: { type: Number, required: true },
   dateOfJoining: { type: Date, required: true },
   address: { type: String, required: true },
-  gender: { type: String, enum: ['Male', 'Female'], required: true },
-  regNo: { type: String, required: true, unique: true, trim: true },
+  gender: { type: String, required: true, enum: ['Male', 'Female'] }, // Ensure enum matches frontend values
+  regNo: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, default: 'user' }, // Default role set to 'user'
-}, {
-  timestamps: true,
+  role: { type: String, default: 'user' }
 });
 
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+module.exports = mongoose.model('User', UserSchema);

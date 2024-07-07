@@ -18,7 +18,8 @@
     "@mui/material": "^5.15.20",
     "axios": "^1.7.2",
     "preact": "^10.19.6",
-    "react-router-dom": "^6.23.1"
+    "react-router-dom": "^6.23.1",
+    "react-toastify": "^8.0.0"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.8.2",

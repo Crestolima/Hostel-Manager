@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -33,6 +33,9 @@ import { styled, alpha } from '@mui/material/styles';
 import { useNavigate, Link, Outlet } from 'react-router-dom';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
+import { AuthContext } from './AuthContext'; // Ensure to import the AuthContext
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 60;
@@ -146,6 +149,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const { logout } = useContext(AuthContext); // Use logout from AuthContext
 
   useEffect(() => {
     setOpen(!isSmallScreen);
@@ -161,7 +165,7 @@ const AdminDashboard = () => {
 
   const handleLogoutConfirm = () => {
     setLogoutDialogOpen(false);
-    localStorage.removeItem('token');
+    logout(); // Use the logout function from AuthContext
     navigate('/login');
   };
 
@@ -173,6 +177,8 @@ const AdminDashboard = () => {
     { text: 'Dashboard', icon: <HomeIcon />, path: 'dashboard' },
     { text: 'Add User', icon: <AccountCircleIcon />, path: 'add-user' },
     { text: 'Add Room', icon: <SettingsIcon />, path: 'add-room' },
+    { text: 'Rooms', icon: <MeetingRoomIcon/>, path: 'room'},
+    { text: 'All Users', icon: <SupervisedUserCircleIcon/>, path: 'user'},
   ];
 
   return (

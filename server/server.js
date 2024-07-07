@@ -3,9 +3,11 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const User = require('./models/User'); // Ensure this path is correct
-const Admin = require('./models/Admin'); // Ensure this path is correct
-const Room = require('./models/Room'); // Ensure this path is correct
+const User = require('./models/User');
+const Admin = require('./models/Admin');
+const Room = require('./models/Room');
+const Booking = require('./models/Booking');
+const PayDetails = require('./models/PayDetails');
 
 const app = express();
 
@@ -15,25 +17,41 @@ app.use(cors());
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/hostel', { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
+  .catch(err => console.log('MongoDB connection error:', err));
 
 // Middleware to parse JSON
 app.use(express.json());
 
+// JWT secret key
+const jwtSecret = 'your_jwt_secret_key';
 
+// Middleware to authenticate JWT token
+const authenticateJWT = (req, res, next) => {
+  const token = req.header('Authorization');
+  if (!token) return res.status(401).json({ message: 'Auth Error' });
+
+  try {
+    const decoded = jwt.verify(token, jwtSecret);
+    req.user = decoded;
+    next();
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Invalid Token' });
+  }
+};
 
 // User login
 app.post('/api/user/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { regNo, password } = req.body;
 
   try {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ regNo });
     if (!user || user.role !== 'user') return res.status(400).json('User not found or role mismatch');
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json('Invalid credentials');
 
-    const token = jwt.sign({ id: user._id, role: user.role }, 'jwtSecret', { expiresIn: '1h' });
+    const token = jwt.sign({ id: user._id, role: user.role }, jwtSecret, { expiresIn: '1h' });
     res.json({ token, role: user.role });
   } catch (err) {
     res.status(500).json('Error: ' + err.message);
@@ -51,17 +69,15 @@ app.post('/api/admin/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) return res.status(400).json('Invalid credentials');
 
-    const token = jwt.sign({ id: admin._id, role: admin.role }, 'jwtSecret', { expiresIn: '1h' });
+    const token = jwt.sign({ id: admin._id, role: admin.role }, jwtSecret, { expiresIn: '1h' });
     res.json({ token, role: admin.role });
   } catch (err) {
     res.status(500).json('Error: ' + err.message);
   }
 });
 
-
-
-// Add a new room
-app.post('/api/rooms', async (req, res) => {
+// Add a new room (Protected route)
+app.post('/api/rooms', authenticateJWT, async (req, res) => {
   const { roomNo, roomType, roomCapacity, floor, price } = req.body;
 
   try {
@@ -83,8 +99,8 @@ app.get('/api/rooms', async (req, res) => {
   }
 });
 
-// Update a room
-app.put('/api/rooms/:id', async (req, res) => {
+// Update a room (Protected route)
+app.put('/api/rooms/:id', authenticateJWT, async (req, res) => {
   const { id } = req.params;
   const { roomNo, roomType, roomCapacity, floor, price } = req.body;
 
@@ -100,8 +116,8 @@ app.put('/api/rooms/:id', async (req, res) => {
   }
 });
 
-// Delete a room
-app.delete('/api/rooms/:id', async (req, res) => {
+// Delete a room (Protected route)
+app.delete('/api/rooms/:id', authenticateJWT, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -112,8 +128,8 @@ app.delete('/api/rooms/:id', async (req, res) => {
   }
 });
 
-// Admin creates a new user
-app.post('/api/admin/create-user', async (req, res) => {
+// Admin creates a new user (Protected route)
+app.post('/api/admin/create-user', authenticateJWT, async (req, res) => {
   const { firstName, initial, lastName, phoneNo, email, dateOfBirth, course, year, dateOfJoining, address, gender, regNo, password } = req.body;
 
   try {
@@ -131,8 +147,83 @@ app.post('/api/admin/create-user', async (req, res) => {
   }
 });
 
+// Fetch all users
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching users' });
+  }
+});
+
+// Update a user
+app.put('/api/users/:id', authenticateJWT, async (req, res) => {
+  const { id } = req.params;
+  const updatedData = req.body;
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(id, updatedData, { new: true });
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(400).json('Error: ' + err.message);
+  }
+});
+
+// Delete a user
+app.delete('/api/users/:id', authenticateJWT, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await User.findByIdAndDelete(id);
+    res.json('User deleted!');
+  } catch (err) {
+    res.status(400).json('Error: ' + err.message);
+  }
+});
+
+// Add booking
+app.post('/api/bookings', async (req, res) => {
+  const { regNo, roomNo, dateOfBooking, payment } = req.body;
+
+  try {
+    const newBooking = new Booking({ regNo, roomNo, dateOfBooking, payment });
+    await newBooking.save();
+    res.status(201).json('Booking added!');
+  } catch (err) {
+    res.status(400).json('Error: ' + err.message);
+  }
+});
+
+// Add payment details
+app.post('/api/payDetails', async (req, res) => {
+  const { roomNo, regNo, paidAmt } = req.body;
+
+  try {
+    const room = await Room.findOne({ roomNo });
+    if (!room) {
+      return res.status(404).json({ message: 'Room not found' });
+    }
+
+    const totalAmt = room.price;
+    const dueAmt = totalAmt - parseFloat(paidAmt);
+
+    const newPayDetails = new PayDetails({
+      roomNo,
+      regNo,
+      totalAmt,
+      paidAmt: parseFloat(paidAmt),
+      dueAmt,
+    });
+
+    await newPayDetails.save();
+    res.status(201).json('Payment details added!');
+  } catch (err) {
+    res.status(400).json('Error: ' + err.message);
+  }
+});
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(Server is running on port ${PORT});
+  console.log(`Server is running on port ${PORT}`);
 });

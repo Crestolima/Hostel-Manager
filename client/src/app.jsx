@@ -10,6 +10,8 @@ import AddRoom from './list/AddRoom';
 import Dashboard from './list/Dashboard';
 import { AuthProvider } from './components/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Rooms from './list/Rooms';
+import AllUsers from './list/AllUsers';
 
 const App = () => {
   return (
@@ -31,6 +33,8 @@ const App = () => {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="add-user" element={<AddUser />} />
             <Route path="add-room" element={<AddRoom />} />
+            <Route path="room" element={<Rooms />} />
+            <Route path="user" element={<AllUsers />} />
           </Route>
           
           {/* User Routes */}

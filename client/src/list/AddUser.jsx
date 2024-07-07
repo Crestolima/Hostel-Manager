@@ -14,9 +14,11 @@ import {
   Select
 } from '@mui/material';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AddUser = () => {
-  const [formData, setFormData] = useState({
+  const initialFormState = {
     firstName: '',
     initial: '',
     lastName: '',
@@ -31,7 +33,9 @@ const AddUser = () => {
     regNo: '',
     password: '',
     role: 'user'
-  });
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -43,10 +47,13 @@ const AddUser = () => {
     try {
       const response = await axios.post('http://localhost:5000/api/admin/create-user', formData);
       console.log(response.data);
-      alert('User added successfully!');
+      toast.success('User added successfully!');
+
+      // Clear the form after successful submission
+      setFormData(initialFormState);
     } catch (error) {
       console.error('There was an error adding the user!', error);
-      alert('Failed to add user!');
+      toast.error('Failed to add user!');
     }
   };
 
@@ -109,8 +116,8 @@ const AddUser = () => {
               value={formData.gender}
               onChange={handleChange}
             >
-              <FormControlLabel value="male" control={<Radio />} label="Male" />
-              <FormControlLabel value="female" control={<Radio />} label="Female" />
+              <FormControlLabel value="Male" control={<Radio />} label="Male" />
+              <FormControlLabel value="Female" control={<Radio />} label="Female" />
             </RadioGroup>
           </FormControl>
           <FormControl required>
@@ -134,10 +141,10 @@ const AddUser = () => {
               value={formData.year}
               onChange={handleChange}
             >
-              <MenuItem value="1">1</MenuItem>
-              <MenuItem value="2">2</MenuItem>
-              <MenuItem value="3">3</MenuItem>
-              <MenuItem value="4">4</MenuItem>
+              <MenuItem value="1">1 Year</MenuItem>
+              <MenuItem value="2">2 Year</MenuItem>
+              <MenuItem value="3">3 Year</MenuItem>
+              <MenuItem value="4">4 Year</MenuItem>
             </Select>
           </FormControl>
           <TextField
@@ -176,6 +183,8 @@ const AddUser = () => {
           </Button>
         </Box>
       </form>
+      {/* Toast Container */}
+      <ToastContainer />
     </Paper>
   );
 };

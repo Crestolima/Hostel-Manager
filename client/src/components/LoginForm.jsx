@@ -1,20 +1,34 @@
 import React, { useState, useContext } from 'react';
-import { TextField, Button, Container, Typography, Box, makeStyles } from '@material-ui/core';
+import {
+  TextField,
+  Button,
+  Container,
+  Typography,
+  Box,
+  makeStyles
+} from '@material-ui/core';
 import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from './AuthContext';
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const useStyles = makeStyles((theme) => ({
+  '@keyframes fadeIn': {
+    from: { opacity: 0 },
+    to: { opacity: 1 },
+  },
   root: {
     height: '100vh',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundImage: 'url(/path/to/your/image.png)', // Add your background image here
+    backgroundColor: '#f3f4f6',
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800' viewBox='0 0 1200 800'%3E%3Crect fill='%23a0c4ff' width='1200' height='800'/%3E%3Cg fill='%23ffffff' fill-opacity='0.2'%3E%3Ccircle cx='400' cy='200' r='50'/%3E%3Ccircle cx='800' cy='600' r='100'/%3E%3Crect x='100' y='300' width='150' height='100' rx='20'/%3E%3Crect x='900' y='100' width='200' height='200' rx='30'/%3E%3Cpath d='M 700,500 C 800,400 900,400 1000,500' stroke='%23ffffff' stroke-width='20' fill='none'/%3E%3C/g%3E%3C/svg%3E")`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
+    animation: '$fadeIn 1s ease-in-out',
   },
   loginCard: {
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Gradient background
@@ -24,6 +38,7 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: 'column',
     alignItems: 'center',
     boxShadow: theme.shadows[5],
+    animation: '$fadeIn 2s ease-in-out',
   },
   form: {
     width: '100%', // Fix IE 11 issue.
@@ -37,6 +52,8 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: '#764ba2',
       color: 'white',
     },
+    borderRadius: theme.spacing(1),
+    padding: theme.spacing(1.5),
   },
   textField: {
     marginBottom: theme.spacing(2),
@@ -47,6 +64,7 @@ const useStyles = makeStyles((theme) => ({
       borderBottomColor: 'white',
     },
     '& .MuiOutlinedInput-root': {
+      borderRadius: theme.spacing(1),
       '& fieldset': {
         borderColor: 'white',
       },
@@ -76,14 +94,14 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: '#764ba2',
       color: 'white',
     },
+    borderRadius: theme.spacing(1),
   },
 }));
 
 const LoginForm = () => {
   const classes = useStyles();
-  const [username, setUsername] = useState('');
+  const [usernameOrRegNo, setUsernameOrRegNo] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [role, setRole] = useState('user'); // Toggle state for role
   const navigate = useNavigate();
   const { login } = useContext(AuthContext); // Use the login function from AuthContext
@@ -96,19 +114,36 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     try {
       const endpoint = role === 'user' ? 'http://localhost:5000/api/user/login' : 'http://localhost:5000/api/admin/login';
-      const res = await axios.post(endpoint, { username, password });
+      const payload = role === 'user' ? { regNo: usernameOrRegNo, password } : { username: usernameOrRegNo, password };
+      const res = await axios.post(endpoint, payload);
       localStorage.setItem('token', res.data.token);
       login(res.data.token, role); // Update the auth state
+      toast.success(`${role === 'user' ? 'User' : 'Admin'} login successful!`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
       if (role === 'admin') {
         navigate('/admin-dashboard');
       } else {
         navigate('/user-dashboard');
       }
     } catch (err) {
-      setError('Invalid credentials or role mismatch');
+      toast.error('Invalid credentials or role mismatch', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
     }
   };
 
@@ -138,9 +173,9 @@ const LoginForm = () => {
               variant="outlined"
               margin="normal"
               fullWidth
-              label="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              label={role === 'user' ? 'Registration Number' : 'Username'}
+              value={usernameOrRegNo}
+              onChange={(e) => setUsernameOrRegNo(e.target.value)}
               className={classes.textField}
               InputProps={{
                 style: { color: 'white' },
@@ -159,7 +194,6 @@ const LoginForm = () => {
                 style: { color: 'white' },
               }}
             />
-            {error && <Typography color="error">{error}</Typography>}
             <Button
               type="submit"
               fullWidth
@@ -171,6 +205,7 @@ const LoginForm = () => {
           </form>
         </Box>
       </Container>
+      <ToastContainer />
     </div>
   );
 };

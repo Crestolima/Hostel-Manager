@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// UserDashboard.js
+import React, { useState, useEffect, useContext } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -12,7 +13,6 @@ import {
   Typography,
   Divider,
   Box,
-  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -31,6 +31,7 @@ import { styled } from '@mui/system';
 import { useNavigate, Outlet } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { AuthContext } from './AuthContext';
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 60;
@@ -97,6 +98,7 @@ const UserDashboard = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
+  const { logout } = useContext(AuthContext);
 
   useEffect(() => {
     setOpen(!isSmallScreen);
@@ -112,7 +114,7 @@ const UserDashboard = () => {
 
   const handleLogoutConfirm = () => {
     setLogoutDialogOpen(false);
-    localStorage.removeItem('token');
+    logout();
     navigate('/login');
   };
 

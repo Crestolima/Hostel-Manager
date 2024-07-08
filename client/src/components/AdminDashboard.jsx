@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo, useCallback } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -33,19 +33,19 @@ import { styled, alpha } from '@mui/material/styles';
 import { useNavigate, Link, Outlet } from 'react-router-dom';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import { AuthContext } from './AuthContext'; // Ensure to import the AuthContext
+import { AuthContext } from './AuthContext';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 60;
 
-const MainContainer = styled('div')(({ theme }) => ({
+const MainContainer = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   height: '100vh',
   width: '100%',
-}));
+});
 
 const DrawerContainer = styled(Drawer)(({ theme, open }) => ({
   width: open ? drawerWidth : collapsedDrawerWidth,
@@ -57,6 +57,8 @@ const DrawerContainer = styled(Drawer)(({ theme, open }) => ({
       duration: theme.transitions.duration.enteringScreen,
     }),
     overflowX: 'hidden',
+    backgroundColor: '#f5f5f5', // Light grey background color
+    color: '#000', // Black text color
   },
 }));
 
@@ -68,10 +70,6 @@ const AppBarContainer = styled(AppBar)(({ theme, open }) => ({
   }),
   marginLeft: open ? drawerWidth : collapsedDrawerWidth,
   width: `calc(100% - ${open ? drawerWidth : collapsedDrawerWidth}px)`,
-  transition: theme.transitions.create('width', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
-  }),
 }));
 
 const MainContent = styled('main')(({ theme, open }) => ({
@@ -92,7 +90,6 @@ const ToggleButtonContainer = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   height: '64px',
-  //backgroundColor: theme.palette.primary.main,
   fontSize: '1.5rem',
   fontWeight: 'bold',
   color: '#000',
@@ -150,15 +147,15 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
-  const { logout } = useContext(AuthContext); // Use logout from AuthContext
+  const { logout } = useContext(AuthContext);
 
   useEffect(() => {
     setOpen(!isSmallScreen);
   }, [isSmallScreen]);
 
-  const handleDrawerToggle = () => {
-    setOpen(!open);
-  };
+  const handleDrawerToggle = useCallback(() => {
+    setOpen(prevOpen => !prevOpen);
+  }, []);
 
   const handleLogoutClick = () => {
     setLogoutDialogOpen(true);
@@ -166,7 +163,7 @@ const AdminDashboard = () => {
 
   const handleLogoutConfirm = () => {
     setLogoutDialogOpen(false);
-    logout(); // Use the logout function from AuthContext
+    logout();
     navigate('/login');
   };
 
@@ -174,13 +171,13 @@ const AdminDashboard = () => {
     setLogoutDialogOpen(false);
   };
 
-  const menuItems = [
+  const menuItems = useMemo(() => [
     { text: 'Dashboard', icon: <HomeIcon />, path: 'dashboard' },
     { text: 'Add User', icon: <AccountCircleIcon />, path: 'add-user' },
     { text: 'Add Room', icon: <SettingsIcon />, path: 'add-room' },
-    { text: 'Rooms', icon: <MeetingRoomIcon/>, path: 'room'},
-    { text: 'All Users', icon: <SupervisedUserCircleIcon/>, path: 'user'},
-  ];
+    { text: 'Rooms', icon: <MeetingRoomIcon />, path: 'room' },
+    { text: 'All Users', icon: <SupervisedUserCircleIcon />, path: 'user' },
+  ], []);
 
   return (
     <MainContainer>
@@ -193,8 +190,8 @@ const AdminDashboard = () => {
         <List>
           {menuItems.map((item, index) => (
             <ListItem button component={Link} to={item.path} key={index}>
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              {open && <ListItemText primary={item.text} />}
+              <ListItemIcon style={{ color: '#000' }}>{item.icon}</ListItemIcon> {/* Black icon color */}
+              {open && <ListItemText primary={item.text} style={{ color: '#000' }} />} {/* Black text color */}
             </ListItem>
           ))}
         </List>

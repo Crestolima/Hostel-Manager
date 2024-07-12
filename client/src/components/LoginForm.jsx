@@ -118,8 +118,10 @@ const LoginForm = () => {
       const endpoint = role === 'user' ? 'http://localhost:5000/api/user/login' : 'http://localhost:5000/api/admin/login';
       const payload = role === 'user' ? { regNo: usernameOrRegNo, password } : { username: usernameOrRegNo, password };
       const res = await axios.post(endpoint, payload);
+      const username = role === 'user' ? res.data.regNo : res.data.username; // Adjust based on your API response
       localStorage.setItem('token', res.data.token);
-      login(res.data.token, role); // Update the auth state
+      localStorage.setItem('username', username); // Save username in local storage
+      login(res.data.token, role, username); // Update the auth state
       toast.success(`${role === 'user' ? 'User' : 'Admin'} login successful!`, {
         position: "top-right",
         autoClose: 5000,

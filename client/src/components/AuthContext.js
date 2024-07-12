@@ -6,27 +6,30 @@ export const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
     isAuthenticated: false,
     userRole: null,
+    username: null,
   });
 
-  // Load auth state from localStorage on initial load
   useEffect(() => {
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('userRole');
-    if (token && role) {
-      setAuthState({ isAuthenticated: true, userRole: role });
+    const username = localStorage.getItem('username');
+    if (token && role && username) {
+      setAuthState({ isAuthenticated: true, userRole: role, username });
     }
   }, []);
 
-  const login = (token, role) => {
+  const login = (token, role, username) => {
     localStorage.setItem('token', token);
     localStorage.setItem('userRole', role);
-    setAuthState({ isAuthenticated: true, userRole: role });
+    localStorage.setItem('username', username);
+    setAuthState({ isAuthenticated: true, userRole: role, username });
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
-    setAuthState({ isAuthenticated: false, userRole: null });
+    localStorage.removeItem('username');
+    setAuthState({ isAuthenticated: false, userRole: null, username: null });
   };
 
   return (

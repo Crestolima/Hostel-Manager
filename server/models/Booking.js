@@ -3,13 +3,11 @@ const mongoose = require('mongoose');
 const BookingSchema = new mongoose.Schema({
   regNo: { 
     type: String, 
-    required: true, 
-    ref: 'User'  // Assuming regNo corresponds to a user's registration number
+    required: true 
   },
   roomNo: { 
     type: String, 
-    required: true, 
-    ref: 'Room'  // Assuming roomNo corresponds to a room's number
+    required: true 
   },
   dateOfBooking: { 
     type: Date, 

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext, useMemo, useCallback } from 're
 import {
   AppBar,
   Toolbar,
-  IconButton,
   Drawer,
   List,
   ListItem,
@@ -19,13 +18,14 @@ import {
   DialogContentText,
   DialogTitle,
   Button,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Home as HomeIcon,
   AccountCircle as AccountCircleIcon,
   Settings as SettingsIcon,
-  Logout as LogoutIcon,
   ChevronRight as ChevronRightIcon,
   Search as SearchIcon,
 } from '@mui/icons-material';
@@ -57,8 +57,8 @@ const DrawerContainer = styled(Drawer)(({ theme, open }) => ({
       duration: theme.transitions.duration.enteringScreen,
     }),
     overflowX: 'hidden',
-    backgroundColor: '#f5f5f5', // Light grey background color
-    color: '#000', // Black text color
+    backgroundColor: '#f5f5f5',
+    color: '#000',
   },
 }));
 
@@ -107,6 +107,7 @@ const Search = styled('div')(({ theme }) => ({
   '&:hover': {
     backgroundColor: alpha(theme.palette.common.white, 0.25),
   },
+  marginRight: theme.spacing(2),
   marginLeft: 0,
   width: '100%',
   [theme.breakpoints.up('sm')]: {
@@ -144,18 +145,31 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 const AdminDashboard = () => {
   const [open, setOpen] = useState(true);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
-  const { logout } = useContext(AuthContext);
+  const { authState, logout } = useContext(AuthContext);
 
   useEffect(() => {
     setOpen(!isSmallScreen);
   }, [isSmallScreen]);
 
+  useEffect(() => {
+    console.log('Logged in username:', authState.username);
+  }, [authState.username]);
+
   const handleDrawerToggle = useCallback(() => {
     setOpen(prevOpen => !prevOpen);
   }, []);
+
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleLogoutClick = () => {
     setLogoutDialogOpen(true);
@@ -190,8 +204,8 @@ const AdminDashboard = () => {
         <List>
           {menuItems.map((item, index) => (
             <ListItem button component={Link} to={item.path} key={index}>
-              <ListItemIcon style={{ color: '#000' }}>{item.icon}</ListItemIcon> {/* Black icon color */}
-              {open && <ListItemText primary={item.text} style={{ color: '#000' }} />} {/* Black text color */}
+              <ListItemIcon style={{ color: '#000' }}>{item.icon}</ListItemIcon>
+              {open && <ListItemText primary={item.text} style={{ color: '#000' }} />}
             </ListItem>
           ))}
         </List>
@@ -211,18 +225,34 @@ const AdminDashboard = () => {
               inputProps={{ 'aria-label': 'search' }}
             />
           </Search>
-          <IconButton color="inherit" onClick={handleLogoutClick}>
-            <LogoutIcon />
-          </IconButton>
+          <Button
+            color="inherit"
+            startIcon={<AccountCircleIcon />}
+            onClick={handleMenuClick}
+          >
+            {authState.username}
+          </Button>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+          >
+            <MenuItem onClick={handleLogoutClick}>Logout</MenuItem>
+          </Menu>
         </Toolbar>
       </AppBarContainer>
       <MainContent open={open}>
         <Outlet />
       </MainContent>
-      <Dialog open={logoutDialogOpen} onClose={handleLogoutCancel}>
-        <DialogTitle>Confirm Logout</DialogTitle>
+      <Dialog
+        open={logoutDialogOpen}
+        onClose={handleLogoutCancel}
+        aria-labelledby="logout-dialog-title"
+        aria-describedby="logout-dialog-description"
+      >
+        <DialogTitle id="logout-dialog-title">Confirm Logout</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText id="logout-dialog-description">
             Are you sure you want to logout?
           </DialogContentText>
         </DialogContent>
@@ -230,7 +260,7 @@ const AdminDashboard = () => {
           <Button onClick={handleLogoutCancel} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleLogoutConfirm} color="primary">
+          <Button onClick={handleLogoutConfirm} color="primary" autoFocus>
             Logout
           </Button>
         </DialogActions>

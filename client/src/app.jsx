@@ -1,4 +1,3 @@
-// App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
@@ -13,6 +12,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Rooms from './list/Rooms';
 import AllUsers from './list/AllUsers';
 
+import LogEntries from './components/list2/LogEntries';
+import LogForm from './components/list2/LogForm';
+import UDashboard from './components/list2/Dashboard';
+
 const App = () => {
   return (
     <AuthProvider>
@@ -21,7 +24,7 @@ const App = () => {
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/signup" element={<SignupForm />} />
-          
+
           {/* Admin Routes */}
           <Route
             path="/admin-dashboard/*"
@@ -36,17 +39,20 @@ const App = () => {
             <Route path="room" element={<Rooms />} />
             <Route path="user" element={<AllUsers />} />
           </Route>
-          
+
           {/* User Routes */}
           <Route
-            path="/user-dashboard"
+            path="/user-dashboard/*"
             element={
               <ProtectedRoute element={<UserDashboard />} requiredRole="user" />
             }
-          />
-          
-          {/* Fallback Route */}
-          <Route path="*" element={<Navigate to="/login" />} />
+          >
+            <Route index element={<UDashboard />} />
+            <Route path="dash" element={<UDashboard />} />
+            <Route path="log" element={<LogEntries />} />
+            <Route path="logform" element={<LogForm />} />
+            {/* Add other user routes here */}
+          </Route>
         </Routes>
       </Router>
     </AuthProvider>

@@ -1,5 +1,4 @@
-// UserDashboard.js
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -21,25 +20,26 @@ import {
   Button,
 } from '@mui/material';
 import {
-  Home as HomeIcon,
-  AccountCircle as AccountCircleIcon,
-  Settings as SettingsIcon,
   ChevronRight as ChevronRightIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
-import { styled } from '@mui/system';
-import { useNavigate, Outlet } from 'react-router-dom';
-import { useTheme } from '@mui/material/styles';
+import { styled, useTheme } from '@mui/material/styles';
+import { useNavigate, Link, Outlet } from 'react-router-dom';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { AuthContext } from './AuthContext';
+import DoorSlidingIcon from '@mui/icons-material/DoorSliding';
+import RememberMeIcon from '@mui/icons-material/RememberMe';
+import BookIcon from '@mui/icons-material/Book';
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 60;
 
-const MainContainer = styled('div')(({ theme }) => ({
+const MainContainer = styled('div')({
   display: 'flex',
+  flexDirection: 'column',
   height: '100vh',
-}));
+  width: '100%',
+});
 
 const DrawerContainer = styled(Drawer)(({ theme, open }) => ({
   width: open ? drawerWidth : collapsedDrawerWidth,
@@ -51,17 +51,19 @@ const DrawerContainer = styled(Drawer)(({ theme, open }) => ({
       duration: theme.transitions.duration.enteringScreen,
     }),
     overflowX: 'hidden',
+    backgroundColor: '#f5f5f5',
+    color: '#000',
   },
 }));
 
 const AppBarContainer = styled(AppBar)(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
-  marginLeft: open ? drawerWidth : collapsedDrawerWidth,
-  width: `calc(100% - ${open ? drawerWidth : collapsedDrawerWidth}px)`,
   transition: theme.transitions.create(['width', 'margin'], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
   }),
+  marginLeft: open ? drawerWidth : collapsedDrawerWidth,
+  width: `calc(100% - ${open ? drawerWidth : collapsedDrawerWidth}px)`,
 }));
 
 const MainContent = styled('main')(({ theme, open }) => ({
@@ -82,13 +84,13 @@ const ToggleButtonContainer = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'center',
   height: '64px',
-  backgroundColor: theme.palette.primary.main,
   fontSize: '1.5rem',
   fontWeight: 'bold',
-  color: '#fff',
+  color: '#000',
   cursor: 'pointer',
   '&:hover': {
-    backgroundColor: theme.palette.primary.light,
+    backgroundColor: theme.palette.primary.main,
+    color: '#fff',
   },
 }));
 
@@ -98,29 +100,42 @@ const UserDashboard = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
-  const { logout } = useContext(AuthContext);
+  const { authState, logout } = useContext(AuthContext);
+
+  // Fetch regNo from auth context
+  const regNo = authState.regNo;
 
   useEffect(() => {
     setOpen(!isSmallScreen);
   }, [isSmallScreen]);
 
-  const handleDrawerToggle = () => {
-    setOpen(!open);
-  };
+  useEffect(() => {
+    console.log('Logged in regNo:', authState.regNo);
+  }, [authState.regNo]);
 
-  const handleLogoutClick = () => {
+  const handleDrawerToggle = useCallback(() => {
+    setOpen(prevOpen => !prevOpen);
+  }, []);
+
+  const handleLogoutClick = useCallback(() => {
     setLogoutDialogOpen(true);
-  };
+  }, []);
 
-  const handleLogoutConfirm = () => {
+  const handleLogoutConfirm = useCallback(() => {
     setLogoutDialogOpen(false);
     logout();
     navigate('/login');
-  };
+  }, [logout, navigate]);
 
-  const handleLogoutCancel = () => {
+  const handleLogoutCancel = useCallback(() => {
     setLogoutDialogOpen(false);
-  };
+  }, []);
+
+  const menuItems = useMemo(() => [
+    { text: 'Home', icon: <RememberMeIcon />, path: '/user-dashboard/dash' },
+    { text: 'Log Entry', icon: <DoorSlidingIcon />, path: '/user-dashboard/logform' },
+    { text: 'Access Log', icon: <BookIcon />, path: '/user-dashboard/log' },
+  ], []);
 
   return (
     <MainContainer>
@@ -131,18 +146,12 @@ const UserDashboard = () => {
         </ToggleButtonContainer>
         <Divider />
         <List>
-          <ListItem button onClick={() => navigate('/home')}>
-            <ListItemIcon><HomeIcon /></ListItemIcon>
-            {open && <ListItemText primary="Home" />}
-          </ListItem>
-          <ListItem button onClick={() => navigate('/profile')}>
-            <ListItemIcon><AccountCircleIcon /></ListItemIcon>
-            {open && <ListItemText primary="Profile" />}
-          </ListItem>
-          <ListItem button onClick={() => navigate('/settings')}>
-            <ListItemIcon><SettingsIcon /></ListItemIcon>
-            {open && <ListItemText primary="Settings" />}
-          </ListItem>
+          {menuItems.map((item, index) => (
+            <ListItem button component={Link} to={item.path} key={index}>
+              <ListItemIcon style={{ color: '#000' }}>{item.icon}</ListItemIcon>
+              {open && <ListItemText primary={item.text} style={{ color: '#000' }} />}
+            </ListItem>
+          ))}
         </List>
       </DrawerContainer>
       <AppBarContainer position="fixed" open={open}>
@@ -151,6 +160,9 @@ const UserDashboard = () => {
             User Dashboard
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
+          <Typography variant="subtitle1" noWrap>
+            {regNo}
+          </Typography>
           <IconButton color="inherit" onClick={handleLogoutClick}>
             <LogoutIcon />
           </IconButton>
@@ -159,10 +171,7 @@ const UserDashboard = () => {
       <MainContent open={open}>
         <Outlet />
       </MainContent>
-      <Dialog
-        open={logoutDialogOpen}
-        onClose={handleLogoutCancel}
-      >
+      <Dialog open={logoutDialogOpen} onClose={handleLogoutCancel}>
         <DialogTitle>Confirm Logout</DialogTitle>
         <DialogContent>
           <DialogContentText>

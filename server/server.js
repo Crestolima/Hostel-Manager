@@ -16,7 +16,7 @@ app.use(cors());
 
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/hostel', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
+  .then(() => console.log('Connected To MongoDB Sucessfully!'))
   .catch(err => console.log('MongoDB connection error:', err));
 
 // Middleware to parse JSON

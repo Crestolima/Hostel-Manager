@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useMemo, useCallback } from 'react';
+import React, { useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -30,12 +30,15 @@ import {
   Search as SearchIcon,
 } from '@mui/icons-material';
 import { styled, alpha } from '@mui/material/styles';
-import { useNavigate, Link, Outlet } from 'react-router-dom';
+import { useNavigate, Link, Outlet, useLocation } from 'react-router-dom';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { AuthContext } from './AuthContext';
+import { SearchContext } from '../components/SearchContext';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
+import AllUsers from '../list/AllUsers';
+
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 60;
@@ -70,6 +73,7 @@ const AppBarContainer = styled(AppBar)(({ theme, open }) => ({
   }),
   marginLeft: open ? drawerWidth : collapsedDrawerWidth,
   width: `calc(100% - ${open ? drawerWidth : collapsedDrawerWidth}px)`,
+  backgroundColor: '#3f51b5',
 }));
 
 const MainContent = styled('main')(({ theme, open }) => ({
@@ -95,7 +99,7 @@ const ToggleButtonContainer = styled(Box)(({ theme }) => ({
   color: '#000',
   cursor: 'pointer',
   '&:hover': {
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: '#3f51b5',
     color: '#fff',
   },
 }));
@@ -146,10 +150,12 @@ const AdminDashboard = () => {
   const [open, setOpen] = useState(true);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
   const { authState, logout } = useContext(AuthContext);
+  const location = useLocation();
 
   useEffect(() => {
     setOpen(!isSmallScreen);
@@ -193,6 +199,13 @@ const AdminDashboard = () => {
     { text: 'All Users', icon: <SupervisedUserCircleIcon />, path: 'user' },
   ], []);
 
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+    if (event.target.value !== '') {
+      navigate('/admin-dashboard/user');
+    }
+  };
+
   return (
     <MainContainer>
       <CssBaseline />
@@ -223,46 +236,44 @@ const AdminDashboard = () => {
             <StyledInputBase
               placeholder="Search…"
               inputProps={{ 'aria-label': 'search' }}
+              value={searchQuery}
+              onChange={handleSearchChange}
             />
           </Search>
-          <Button
+          <Box>
+            <Button
             color="inherit"
             startIcon={<AccountCircleIcon />}
-            onClick={handleMenuClick}
-          >
-            {authState.username}
-          </Button>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem onClick={handleLogoutClick}>Logout</MenuItem>
-          </Menu>
+              aria-controls="simple-menu"
+              aria-haspopup="true"
+              onClick={handleMenuClick}
+              style={{ color: '#fff' }}
+            >
+              {authState.username}
+            </Button>
+            <Menu
+              id="simple-menu"
+              anchorEl={anchorEl}
+              keepMounted
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+            >
+              <MenuItem onClick={handleLogoutClick}>Logout</MenuItem>
+            </Menu>
+          </Box>
         </Toolbar>
       </AppBarContainer>
       <MainContent open={open}>
-        <Outlet />
+        {searchQuery !== '' ? <AllUsers searchQuery={searchQuery} /> : <Outlet />}
       </MainContent>
-      <Dialog
-        open={logoutDialogOpen}
-        onClose={handleLogoutCancel}
-        aria-labelledby="logout-dialog-title"
-        aria-describedby="logout-dialog-description"
-      >
-        <DialogTitle id="logout-dialog-title">Confirm Logout</DialogTitle>
+      <Dialog open={logoutDialogOpen} onClose={handleLogoutCancel}>
+        <DialogTitle>Logout</DialogTitle>
         <DialogContent>
-          <DialogContentText id="logout-dialog-description">
-            Are you sure you want to logout?
-          </DialogContentText>
+          <DialogContentText>Are you sure you want to logout?</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleLogoutCancel} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleLogoutConfirm} color="primary" autoFocus>
-            Logout
-          </Button>
+          <Button onClick={handleLogoutCancel} color="primary">Cancel</Button>
+          <Button onClick={handleLogoutConfirm} color="primary">Logout</Button>
         </DialogActions>
       </Dialog>
     </MainContainer>

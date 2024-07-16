@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useContext, useMemo, useCallback } from 'react';
 import {
   AppBar,
   Toolbar,
-  IconButton,
   Drawer,
   List,
   ListItem,
@@ -12,24 +11,31 @@ import {
   Typography,
   Divider,
   Box,
+  InputBase,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   Button,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import {
+  Menu as MenuIcon,
+  Home as HomeIcon,
+  AccountCircle as AccountCircleIcon,
+  Settings as SettingsIcon,
   ChevronRight as ChevronRightIcon,
-  Logout as LogoutIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
-import { styled, useTheme } from '@mui/material/styles';
+import { styled, alpha } from '@mui/material/styles';
 import { useNavigate, Link, Outlet } from 'react-router-dom';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import { AuthContext } from './AuthContext';
-import DoorSlidingIcon from '@mui/icons-material/DoorSliding';
-import RememberMeIcon from '@mui/icons-material/RememberMe';
-import BookIcon from '@mui/icons-material/Book';
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 60;
@@ -94,47 +100,97 @@ const ToggleButtonContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
+const Search = styled('div')(({ theme }) => ({
+  position: 'relative',
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.common.white, 0.25),
+  },
+  marginRight: theme.spacing(2),
+  marginLeft: 0,
+  width: '100%',
+  [theme.breakpoints.up('sm')]: {
+    marginLeft: theme.spacing(1),
+    width: 'auto',
+  },
+}));
+
+const SearchIconWrapper = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: '100%',
+  position: 'absolute',
+  pointerEvents: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}));
+
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: 'inherit',
+  '& .MuiInputBase-input': {
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      width: '12ch',
+      '&:focus': {
+        width: '20ch',
+      },
+    },
+  },
+}));
+
 const UserDashboard = () => {
   const [open, setOpen] = useState(true);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
   const { authState, logout } = useContext(AuthContext);
-
-  // Fetch regNo from auth context
-  const regNo = authState.regNo;
 
   useEffect(() => {
     setOpen(!isSmallScreen);
   }, [isSmallScreen]);
 
   useEffect(() => {
-    console.log('Logged in regNo:', authState.regNo);
-  }, [authState.regNo]);
+    console.log('Logged in regNo:', authState.username);
+  }, [authState.username]);
 
   const handleDrawerToggle = useCallback(() => {
     setOpen(prevOpen => !prevOpen);
   }, []);
 
-  const handleLogoutClick = useCallback(() => {
-    setLogoutDialogOpen(true);
-  }, []);
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
 
-  const handleLogoutConfirm = useCallback(() => {
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogoutClick = () => {
+    setLogoutDialogOpen(true);
+  };
+
+  const handleLogoutConfirm = () => {
     setLogoutDialogOpen(false);
     logout();
     navigate('/login');
-  }, [logout, navigate]);
+  };
 
-  const handleLogoutCancel = useCallback(() => {
+  const handleLogoutCancel = () => {
     setLogoutDialogOpen(false);
-  }, []);
+  };
 
   const menuItems = useMemo(() => [
-    { text: 'Home', icon: <RememberMeIcon />, path: '/user-dashboard/dash' },
-    { text: 'Log Entry', icon: <DoorSlidingIcon />, path: '/user-dashboard/logform' },
-    { text: 'Access Log', icon: <BookIcon />, path: '/user-dashboard/log' },
+    { text: 'Dashboard', icon: <HomeIcon />, path: 'dashboard' },
+    { text: 'Profile', icon: <AccountCircleIcon />, path: 'profile' },
+    { text: 'Settings', icon: <SettingsIcon />, path: 'settings' },
+    { text: 'Rooms', icon: <MeetingRoomIcon />, path: 'rooms' },
+    { text: 'Users', icon: <SupervisedUserCircleIcon />, path: 'users' },
   ], []);
 
   return (
@@ -160,21 +216,43 @@ const UserDashboard = () => {
             User Dashboard
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
-          <Typography variant="subtitle1" noWrap>
-            {regNo}
-          </Typography>
-          <IconButton color="inherit" onClick={handleLogoutClick}>
-            <LogoutIcon />
-          </IconButton>
+          <Search>
+            <SearchIconWrapper>
+              <SearchIcon />
+            </SearchIconWrapper>
+            <StyledInputBase
+              placeholder="Search…"
+              inputProps={{ 'aria-label': 'search' }}
+            />
+          </Search>
+          <Button
+            color="inherit"
+            startIcon={<AccountCircleIcon />}
+            onClick={handleMenuClick}
+          >
+            {authState.username}
+          </Button>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+          >
+            <MenuItem onClick={handleLogoutClick}>Logout</MenuItem>
+          </Menu>
         </Toolbar>
       </AppBarContainer>
       <MainContent open={open}>
         <Outlet />
       </MainContent>
-      <Dialog open={logoutDialogOpen} onClose={handleLogoutCancel}>
-        <DialogTitle>Confirm Logout</DialogTitle>
+      <Dialog
+        open={logoutDialogOpen}
+        onClose={handleLogoutCancel}
+        aria-labelledby="logout-dialog-title"
+        aria-describedby="logout-dialog-description"
+      >
+        <DialogTitle id="logout-dialog-title">Confirm Logout</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText id="logout-dialog-description">
             Are you sure you want to logout?
           </DialogContentText>
         </DialogContent>
@@ -182,7 +260,7 @@ const UserDashboard = () => {
           <Button onClick={handleLogoutCancel} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleLogoutConfirm} color="primary">
+          <Button onClick={handleLogoutConfirm} color="primary" autoFocus>
             Logout
           </Button>
         </DialogActions>

@@ -1,18 +1,21 @@
-import React, { useEffect, useState } from 'react';
+// AllUsers.jsx
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
-import { 
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, IconButton 
+import {
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, IconButton, TextField
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EditUser from './EditUser';
+import { SearchContext } from '../components/SearchContext';
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userBookings, setUserBookings] = useState({});
+  const { searchQuery, setSearchQuery } = useContext(SearchContext);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -97,8 +100,15 @@ const AllUsers = () => {
     setSelectedUser(null);
   };
 
+  // Filter users based on search query from SearchContext
+  const filteredUsers = users.filter(user =>
+    user.regNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    `${user.firstName} ${user.initial} ${user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <>
+      
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
@@ -113,7 +123,7 @@ const AllUsers = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {Array.isArray(users) && users.map((user, index) => (
+            {Array.isArray(filteredUsers) && filteredUsers.map((user, index) => (
               <TableRow key={user._id}>
                 <TableCell>{index + 1}</TableCell>
                 <TableCell>{user.regNo}</TableCell>

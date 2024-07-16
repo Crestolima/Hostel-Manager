@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -16,8 +16,15 @@ import {
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AuthContext } from '../components/AuthContext'; // Adjust the path as necessary
 
 const AddUser = () => {
+  const { authState } = useContext(AuthContext);
+
+  useEffect(() => {
+    console.log('AuthState:', authState); // Debugging line
+  }, [authState]);
+
   const initialFormState = {
     firstName: '',
     initial: '',
@@ -45,7 +52,22 @@ const AddUser = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('http://localhost:5000/api/admin/create-user', formData);
+      const token = localStorage.getItem('token');
+      console.log('Token:', token); // Debugging line
+
+      if (!token) {
+        toast.error('No token found, please log in again.');
+        return;
+      }
+
+      // Set the headers with the JWT token
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      };
+
+      const response = await axios.post('http://localhost:5000/api/admin/create-user', formData, config);
       console.log(response.data);
       toast.success('User added successfully!');
 
@@ -127,7 +149,7 @@ const AddUser = () => {
               value={formData.course}
               onChange={handleChange}
             >
-              <MenuItem value="Computer Science">Computer Science</MenuItem>
+              <MenuItem value="Computer Science">Computer Science & Engineering</MenuItem>
               <MenuItem value="Electrical Engineering">Electrical Engineering</MenuItem>
               <MenuItem value="Mechanical Engineering">Mechanical Engineering</MenuItem>
               <MenuItem value="Civil Engineering">Civil Engineering</MenuItem>

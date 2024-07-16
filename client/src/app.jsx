@@ -11,50 +11,45 @@ import { AuthProvider } from './components/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Rooms from './list/Rooms';
 import AllUsers from './list/AllUsers';
-
-import LogEntries from './components/list2/LogEntries';
-import LogForm from './components/list2/LogForm';
+import { SearchProvider } from './components/SearchContext'; // Ensure this is correctly imported
 import UDashboard from './components/list2/Dashboard';
 
 const App = () => {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/signup" element={<SignupForm />} />
-
-          {/* Admin Routes */}
-          <Route
-            path="/admin-dashboard/*"
-            element={
-              <ProtectedRoute element={<AdminDashboard />} requiredRole="admin" />
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="add-user" element={<AddUser />} />
-            <Route path="add-room" element={<AddRoom />} />
-            <Route path="room" element={<Rooms />} />
-            <Route path="user" element={<AllUsers />} />
-          </Route>
-
-          {/* User Routes */}
-          <Route
-            path="/user-dashboard/*"
-            element={
-              <ProtectedRoute element={<UserDashboard />} requiredRole="user" />
-            }
-          >
-            <Route index element={<UDashboard />} />
-            <Route path="dash" element={<UDashboard />} />
-            <Route path="log" element={<LogEntries />} />
-            <Route path="logform" element={<LogForm />} />
-            {/* Add other user routes here */}
-          </Route>
-        </Routes>
-      </Router>
+      <SearchProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" />} />
+            <Route path="/login" element={<LoginForm />} />
+            <Route path="/signup" element={<SignupForm />} />
+            <Route
+              path="/admin-dashboard/*"
+              element={
+                <ProtectedRoute requiredRole="admin" element={<AdminDashboard />} />
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="add-user" element={<AddUser />} />
+              <Route path="add-room" element={<AddRoom />} />
+              <Route path="room" element={<Rooms />} />
+              <Route path="user" element={<AllUsers />} />
+            </Route>
+            <Route
+              path="/user-dashboard/*"
+              element={
+                <ProtectedRoute requiredRole="user" element={<UserDashboard />} />
+              }
+            >
+              <Route index element={<UDashboard />} />
+              <Route path="dashboard" element={<UDashboard />} />
+              <Route path="add-user" element={<AddUser />} />
+              
+            </Route>
+          </Routes>
+        </Router>
+      </SearchProvider>
     </AuthProvider>
   );
 };

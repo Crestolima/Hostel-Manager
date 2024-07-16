@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
     animation: '$fadeIn 1s ease-in-out',
   },
   loginCard: {
-    background: 'linear-gradient()', // Gradient background
+    background: 'linear-gradient(135deg, #764ba2 30%, #667eea 90%)',
     borderRadius: theme.spacing(2),
     padding: theme.spacing(4),
     display: 'flex',
@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
     animation: '$fadeIn 2s ease-in-out',
   },
   form: {
-    width: '100%', // Fix IE 11 issue.
+    width: '100%',
     marginTop: theme.spacing(1),
   },
   submit: {
@@ -76,9 +76,6 @@ const useStyles = makeStyles((theme) => ({
       },
     },
   },
-  link: {
-    color: 'white',
-  },
   typography: {
     color: 'white',
   },
@@ -102,9 +99,9 @@ const LoginForm = () => {
   const classes = useStyles();
   const [usernameOrRegNo, setUsernameOrRegNo] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('user'); // Toggle state for role
+  const [role, setRole] = useState('user');
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext); // Use the login function from AuthContext
+  const { login } = useContext(AuthContext);
 
   const handleRoleChange = (event, newRole) => {
     if (newRole !== null) {
@@ -118,10 +115,9 @@ const LoginForm = () => {
       const endpoint = role === 'user' ? 'http://localhost:5000/api/user/login' : 'http://localhost:5000/api/admin/login';
       const payload = role === 'user' ? { regNo: usernameOrRegNo, password } : { username: usernameOrRegNo, password };
       const res = await axios.post(endpoint, payload);
-      const username = role === 'user' ? res.data.regNo : res.data.username; // Adjust based on your API response
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('username', username); // Save username in local storage
-      login(res.data.token, role, username); // Update the auth state
+      const identifier = role === 'user' ? res.data.regNo : res.data.username;
+
+      login(res.data.token, role, identifier);
       toast.success(`${role === 'user' ? 'User' : 'Admin'} login successful!`, {
         position: "top-right",
         autoClose: 5000,
@@ -131,6 +127,7 @@ const LoginForm = () => {
         draggable: true,
         progress: undefined,
       });
+
       if (role === 'admin') {
         navigate('/admin-dashboard');
       } else {

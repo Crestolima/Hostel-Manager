@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   Box,
   Button,
@@ -8,8 +8,12 @@ import {
   Paper
 } from '@mui/material';
 import axios from 'axios';
+import { AuthContext } from '../components/AuthContext'; // Adjust the path as necessary
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AddRoom = () => {
+  const { authState } = useContext(AuthContext);
   const [roomNo, setRoomNo] = useState('');
   const [roomType, setRoomType] = useState('');
   const [roomCapacity, setRoomCapacity] = useState('');
@@ -28,12 +32,26 @@ const AddRoom = () => {
     };
 
     try {
-      const response = await axios.post('http://localhost:5000/api/rooms', roomData);
+      const token = localStorage.getItem('token');
+      console.log('Token:', token); // Debugging line
+
+      if (!token) {
+        toast.error('No token found, please log in again.');
+        return;
+      }
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      };
+
+      const response = await axios.post('http://localhost:5000/api/rooms', roomData, config);
       console.log(response.data);
-      alert('Room added successfully!');
+      toast.success('Room added successfully!');
     } catch (error) {
       console.error('There was an error adding the room!', error);
-      alert('Failed to add room!');
+      toast.error('Failed to add room!');
     }
   };
 
@@ -87,6 +105,8 @@ const AddRoom = () => {
           </Button>
         </Box>
       </form>
+      {/* Toast Container */}
+      <ToastContainer />
     </Paper>
   );
 };

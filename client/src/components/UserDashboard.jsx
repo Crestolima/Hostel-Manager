@@ -30,7 +30,7 @@ import {
   Search as SearchIcon,
 } from '@mui/icons-material';
 import { styled, alpha } from '@mui/material/styles';
-import { useNavigate, Link, Outlet } from 'react-router-dom';
+import { useNavigate, Link, Outlet, useLocation } from 'react-router-dom';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { AuthContext } from './AuthContext';
@@ -147,6 +147,7 @@ const UserDashboard = () => {
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
   const { authState, logout } = useContext(AuthContext);
@@ -158,6 +159,12 @@ const UserDashboard = () => {
   useEffect(() => {
     console.log('Logged in regNo:', authState.username);
   }, [authState.username]);
+
+  useEffect(() => {
+    if (location.pathname === '/user-dashboard') {
+      navigate('dashboard', { state: { regNo: authState.username } });
+    }
+  }, [location.pathname, navigate, authState.username]);
 
   const handleDrawerToggle = useCallback(() => {
     setOpen(prevOpen => !prevOpen);
@@ -186,12 +193,10 @@ const UserDashboard = () => {
   };
 
   const menuItems = useMemo(() => [
-    { text: 'Dashboard', icon: <HomeIcon />, path: 'dashboard' },
-    { text: 'Profile', icon: <AccountCircleIcon />, path: 'profile' },
-    { text: 'Settings', icon: <SettingsIcon />, path: 'settings' },
-    { text: 'Rooms', icon: <MeetingRoomIcon />, path: 'rooms' },
-    { text: 'Users', icon: <SupervisedUserCircleIcon />, path: 'users' },
-  ], []);
+    { text: 'Dashboard', icon: <HomeIcon />, path: 'dashboard', state: { regNo: authState.username } },
+    { text: 'Log Book', icon: <AccountCircleIcon />, path: 'logbook', state: { regNo: authState.username } },
+    { text: 'Log Entries', icon: <SettingsIcon />, path: 'logentries', state: { regNo: authState.username } },
+  ], [authState.username]);
 
   return (
     <MainContainer>
@@ -203,7 +208,13 @@ const UserDashboard = () => {
         <Divider />
         <List>
           {menuItems.map((item, index) => (
-            <ListItem button component={Link} to={item.path} key={index}>
+            <ListItem 
+              button 
+              component={Link} 
+              to={item.path} 
+              state={item.state} // Pass the state here
+              key={index}
+            >
               <ListItemIcon style={{ color: '#000' }}>{item.icon}</ListItemIcon>
               {open && <ListItemText primary={item.text} style={{ color: '#000' }} />}
             </ListItem>

@@ -11,14 +11,16 @@ import { AuthProvider } from './components/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Rooms from './list/Rooms';
 import AllUsers from './list/AllUsers';
-import { SearchProvider } from './components/SearchContext'; // Ensure this is correctly imported
+import { SearchProvider } from './components/SearchContext';
 import UDashboard from './components/list2/Dashboard';
+import LogForm from './components/list2/LogForm';
+import LogEntries from './components/list2/LogEntries';
 
 const App = () => {
   return (
-    <AuthProvider>
-      <SearchProvider>
-        <Router>
+    <Router>
+      <AuthProvider>
+        <SearchProvider>
           <Routes>
             <Route path="/" element={<Navigate to="/login" />} />
             <Route path="/login" element={<LoginForm />} />
@@ -35,6 +37,7 @@ const App = () => {
               <Route path="add-room" element={<AddRoom />} />
               <Route path="room" element={<Rooms />} />
               <Route path="user" element={<AllUsers />} />
+              <Route path="logentries" element={<LogEntries />} />
             </Route>
             <Route
               path="/user-dashboard/*"
@@ -44,13 +47,15 @@ const App = () => {
             >
               <Route index element={<UDashboard />} />
               <Route path="dashboard" element={<UDashboard />} />
-              <Route path="add-user" element={<AddUser />} />
+              <Route path="logbook" element={<LogForm />} />
+              <Route path="logentries" element={<LogEntries />} />
               
+              {/* Add other user routes here */}
             </Route>
           </Routes>
-        </Router>
-      </SearchProvider>
-    </AuthProvider>
+        </SearchProvider>
+      </AuthProvider>
+    </Router>
   );
 };
 

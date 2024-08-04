@@ -75,9 +75,10 @@ const AddRoom = () => {
             onChange={(e) => setRoomType(e.target.value)}
             required
           >
-            <MenuItem value="Single">Single</MenuItem>
-            <MenuItem value="Double">Double</MenuItem>
-            <MenuItem value="Suite">Suite</MenuItem>
+            <MenuItem value="Single,Non-Attached">Single,Non-Attached</MenuItem>
+            <MenuItem value="Single,Attached">Single,Attached</MenuItem>
+            <MenuItem value="Double,Non-Attached">Double,Non-Attached</MenuItem>
+            <MenuItem value="Double,Attached">Double,Attached</MenuItem>
           </TextField>
           <TextField
             label="Room Capacity"

@@ -1,59 +1,145 @@
-// LogForm.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
+import { Box, Paper, Typography, CircularProgress, TextField, Button } from '@mui/material';
+import { styled } from '@mui/material/styles';
+
+const LogFormCard = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(4),
+  textAlign: 'left',
+  color: theme.palette.text.primary,
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: 12,
+  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.2)',
+  },
+}));
 
 const LogForm = () => {
-  const [isLoggingOut, setIsLoggingOut] = useState(true);
-  const [reason, setReason] = useState('');
+  const location = useLocation();
+  const regNo = location.state?.regNo;
 
-  const handleLogOut = async (e) => {
-    e.preventDefault();
+  const [userDetails, setUserDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [remarks, setRemarks] = useState('');
+  const [isBack, setIsBack] = useState(false);
+
+  useEffect(() => {
+    if (regNo) {
+      const fetchUserDetails = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await axios.get(`http://localhost:5000/api/student-details/${regNo}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (response.status === 200 && response.data) {
+            setUserDetails({
+              regNo: response.data.user.regNo,
+              roomNo: response.data.room.roomNo,
+              currentLog: response.data.user.currentLog,
+            });
+            setIsBack(!!response.data.user.currentLog); // Set isBack based on currentLog field
+          } else {
+            console.error('Unexpected API response:', response);
+          }
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchUserDetails();
+    } else {
+      setLoading(false);
+    }
+  }, [regNo]);
+
+  const handleBackClick = async () => {
+    const token = localStorage.getItem('token');
     try {
-      const response = await axios.post('/api/log-out', {
-        regNo: 'studentRegNo', // Replace with actual regNo from context or state
-        roomNo: 'studentRoomNo', // Replace with actual roomNo from context or state
-        remarks: reason,
-      });
-      console.log(response.data);
-      setIsLoggingOut(false);
+      const outTime = new Date().toISOString();
+      await axios.post(
+        'http://localhost:5000/api/logs',
+        { regNo, roomNo: userDetails.roomNo, remarks, outTime },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setIsBack(true);
     } catch (error) {
-      console.error('Error logging out:', error.response.data);
+      console.error('Error updating outTime:', error);
     }
   };
 
-  const handleLogIn = async () => {
+  const handleReturnClick = async () => {
+    const token = localStorage.getItem('token');
     try {
-      const response = await axios.post('/api/log-in', {
-        regNo: 'studentRegNo', // Replace with actual regNo from context or state
-        roomNo: 'studentRoomNo', // Replace with actual roomNo from context or state
-      });
-      console.log(response.data);
-      setIsLoggingOut(true);
+      const inTime = new Date().toISOString();
+      await axios.put(
+        `http://localhost:5000/api/logs/${regNo}`,
+        { inTime },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setIsBack(false);
     } catch (error) {
-      console.error('Error logging in:', error.response.data);
+      console.error('Error updating inTime:', error);
     }
   };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!userDetails) {
+    return (
+      <Typography variant="h6" textAlign="center" mt={4}>
+        No user details found for the provided registration number.
+      </Typography>
+    );
+  }
 
   return (
-    <div>
-      {isLoggingOut ? (
-        <div>
-          <h1>STUDENT LOG-OUT ENTRY</h1>
-          <form onSubmit={handleLogOut}>
-            <label>
-              Reason:
-              <textarea value={reason} onChange={(e) => setReason(e.target.value)} />
-            </label>
-            <button type="submit">I'll be back</button>
-          </form>
-        </div>
-      ) : (
-        <div>
-          <h1>STUDENT LOG-IN ENTRY</h1>
-          <button onClick={handleLogIn}>I'm back</button>
-        </div>
-      )}
-    </div>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      <LogFormCard>
+        <Typography variant="h5" gutterBottom>
+          {isBack ? 'Log-In Form' : 'Log-Out Form'}
+        </Typography>
+        {!isBack && (
+          <>
+            <Typography variant="body1" gutterBottom>
+              <strong>Reg No:</strong> {userDetails.regNo}
+            </Typography>
+            <Typography variant="body1" gutterBottom>
+              <strong>Room No:</strong> {userDetails.roomNo}
+            </Typography>
+            <TextField
+              label="Remarks"
+              variant="outlined"
+              fullWidth
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              sx={{ mt: 2, mb: 2 }}
+            />
+            <Button variant="contained" color="primary" onClick={handleBackClick}>
+              I'll be back
+            </Button>
+          </>
+        )}
+        {isBack && (
+          <Button variant="contained" color="primary" onClick={handleReturnClick}>
+            I'm Back
+          </Button>
+        )}
+      </LogFormCard>
+    </Box>
   );
 };
 

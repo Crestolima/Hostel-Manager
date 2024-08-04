@@ -8,6 +8,7 @@ const Admin = require('./models/Admin');
 const Room = require('./models/Room');
 const Booking = require('./models/Booking');
 const PayDetails = require('./models/PayDetails');
+const Log = require('./models/Log');
 
 const app = express();
 
@@ -16,7 +17,7 @@ app.use(cors());
 
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/hostel', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected To MongoDB Sucessfully!'))
+  .then(() => console.log('Connected To MongoDB Successfully!'))
   .catch(err => console.log('MongoDB connection error:', err));
 
 // Middleware to parse JSON
@@ -62,13 +63,14 @@ app.post('/api/user/login', async (req, res) => {
       return res.status(400).json('Invalid credentials');
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, jwtSecret, { expiresIn: '1h' });
-    res.json({ token, role: user.role });
+    const token = jwt.sign({ id: user._id, role: user.role, regNo: user.regNo }, jwtSecret, { expiresIn: '1h' });
+    res.json({ token, role: user.role, regNo: user.regNo });
   } catch (err) {
     res.status(500).json('Error: ' + err.message);
   }
 });
 
+// Admin login
 app.post('/api/admin/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -279,20 +281,6 @@ app.get('/api/dashboard-data', async (req, res) => {
   }
 });
 
-app.get('/api/bookings/:regNo', async (req, res) => {
-  const { regNo } = req.params;
-
-  try {
-    const booking = await Booking.findOne({ regNo });
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
-    }
-    res.json(booking);
-  } catch (err) {
-    res.status(500).json('Error: ' + err.message);
-  }
-});
-
 // Cancel a booking
 app.delete('/api/bookings/:regNo', async (req, res) => {
   const { regNo } = req.params;
@@ -308,7 +296,8 @@ app.delete('/api/bookings/:regNo', async (req, res) => {
   }
 });
 
-app.get('/api/student-details/:regNo', async (req, res) => {
+// Fetch student details by regNo
+app.get('/api/student-details/:regNo', authenticateJWT, async (req, res) => {
   const { regNo } = req.params;
 
   try {
@@ -343,6 +332,64 @@ app.get('/api/student-details/:regNo', async (req, res) => {
     res.status(500).json({ message: 'Error fetching details: ' + err.message });
   }
 });
+
+// Log a new entry
+app.post('/api/logs', authenticateJWT, async (req, res) => {
+  const { regNo, roomNo, remarks, outTime } = req.body;
+  try {
+    const newLog = new Log({ regNo, roomNo, remarks, outTime });
+    await newLog.save();
+
+    // Update user's currentLog field
+    await User.findOneAndUpdate({ regNo }, { currentLog: newLog._id });
+
+    res.status(201).json({ message: 'Log created!' });
+  } catch (err) {
+    res.status(500).json('Error: ' + err.message);
+  }
+});
+
+// Update log entry
+app.put('/api/logs/:regNo', authenticateJWT, async (req, res) => {
+  const { regNo } = req.params;
+  const { inTime } = req.body;
+  try {
+    const log = await Log.findOneAndUpdate({ regNo, inTime: null }, { inTime }, { new: true });
+    if (!log) {
+      return res.status(404).json({ message: 'Log not found' });
+    }
+
+    // Clear user's currentLog field
+    await User.findOneAndUpdate({ regNo }, { currentLog: null });
+
+    res.json({ message: 'Log updated!' });
+  } catch (err) {
+    res.status (500).json('Error: ' + err.message);
+  }
+});
+
+// Fetch log entries with pagination
+app.get('/api/logs', authenticateJWT, async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+
+  try {
+    const logs = await Log.find()
+      .sort({ outTime: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .exec();
+    const count = await Log.countDocuments();
+
+    res.json({
+      logs,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching logs' });
+  }
+});
+
 
 // Start the server
 const PORT = process.env.PORT || 5000;

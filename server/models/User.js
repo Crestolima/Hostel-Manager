@@ -14,7 +14,8 @@ const UserSchema = new mongoose.Schema({
   gender: { type: String, required: true, enum: ['Male', 'Female'] }, // Ensure enum matches frontend values
   regNo: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, default: 'user' }
+  role: { type: String, default: 'user' },
+  currentLog: { type: mongoose.Schema.Types.ObjectId, ref: 'Log', default: null },
 });
 
 module.exports = mongoose.model('User', UserSchema);

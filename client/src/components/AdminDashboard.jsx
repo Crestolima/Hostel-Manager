@@ -197,6 +197,7 @@ const AdminDashboard = () => {
     { text: 'Add Room', icon: <SettingsIcon />, path: 'add-room' },
     { text: 'Rooms', icon: <MeetingRoomIcon />, path: 'room' },
     { text: 'All Users', icon: <SupervisedUserCircleIcon />, path: 'user' },
+    { text: 'Log Entries', icon: <SettingsIcon />, path: 'logentries' },
   ], []);
 
   const handleSearchChange = (event) => {

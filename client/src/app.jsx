@@ -15,6 +15,8 @@ import { SearchProvider } from './components/SearchContext';
 import UDashboard from './components/list2/Dashboard';
 import LogForm from './components/list2/LogForm';
 import LogEntries from './components/list2/LogEntries';
+import ComplaintBox from './components/list2/ComplaintForm';
+import AdminComplaints from './list/AdminComplaints';
 
 const App = () => {
   return (
@@ -38,6 +40,8 @@ const App = () => {
               <Route path="room" element={<Rooms />} />
               <Route path="user" element={<AllUsers />} />
               <Route path="logentries" element={<LogEntries />} />
+              <Route path="complaints" element={<AdminComplaints />} />
+              
             </Route>
             <Route
               path="/user-dashboard/*"
@@ -49,6 +53,7 @@ const App = () => {
               <Route path="dashboard" element={<UDashboard />} />
               <Route path="logbook" element={<LogForm />} />
               <Route path="logentries" element={<LogEntries />} />
+              <Route path="compbox" element={<ComplaintBox />} />
               
               {/* Add other user routes here */}
             </Route>

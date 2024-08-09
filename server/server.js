@@ -9,6 +9,7 @@ const Room = require('./models/Room');
 const Booking = require('./models/Booking');
 const PayDetails = require('./models/PayDetails');
 const Log = require('./models/Log');
+const Complaint = require('./models/Complaint');
 
 const app = express();
 
@@ -390,6 +391,147 @@ app.get('/api/logs', authenticateJWT, async (req, res) => {
   }
 });
 
+// Add a new complaint
+app.post('/api/complaints', authenticateJWT, async (req, res) => {
+  const { regNo, roomNo, reason } = req.body;
+
+  try {
+    const newComplaint = new Complaint({ regNo, roomNo, reason });
+    await newComplaint.save();
+    res.status(201).json('Complaint added!');
+  } catch (err) {
+    res.status(400).json('Error: ' + err.message);
+  }
+});
+
+// Fetch all complaints
+app.get('/api/complaints', authenticateJWT, async (req, res) => {
+  try {
+    const complaints = await Complaint.find();
+    res.json(complaints);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching complaints' });
+  }
+});
+
+
+
+// Fetch complaints for a specific user
+app.get('/api/complaints/user/:regNo', authenticateJWT, async (req, res) => {
+  const { regNo } = req.params;
+
+  try {
+    const complaints = await Complaint.find({ regNo });
+    res.json(complaints);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching complaints' });
+  }
+});
+
+// Delete a complaint
+app.delete('/api/complaints/:id', authenticateJWT, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await Complaint.findByIdAndDelete(id);
+    res.json('Complaint deleted!');
+  } catch (err) {
+    res.status(400).json('Error: ' + err.message);
+  }
+});
+
+// Fetch all complaints
+app.get('/api/complaints', authenticateJWT, async (req, res) => {
+  try {
+    const complaints = await Complaint.find();
+    res.json(complaints);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching complaints' });
+  }
+});
+
+// Update a complaint
+app.put('/api/complaints/:id', authenticateJWT, async (req, res) => {
+  const { id } = req.params;
+  const { reason, status } = req.body;
+
+  console.log(`Received request to update complaint with id: ${id} to status: ${status}`);
+
+  try {
+    const complaint = await Complaint.findById(id);
+    if (!complaint) {
+      console.log('Complaint not found');
+      return res.status(404).send('Complaint not found');
+    }
+
+    if (complaint.status === 'resolved') {
+      console.log('Complaint is already resolved. No update performed.');
+      return res.status(200).json(complaint);
+    }
+
+    complaint.reason = reason || complaint.reason;
+    complaint.status = status || complaint.status;
+
+    const updatedComplaint = await complaint.save();
+    res.json(updatedComplaint);
+  } catch (err) {
+    res.status(400).json('Error: ' + err.message);
+  }
+});
+
+// Fetch logs where inTime is null (not back yet)
+app.get('/api/not-returned-logs', authenticateJWT, async (req, res) => {
+  try {
+    const logs = await Log.find({ inTime: null }).populate('regNo roomNo');
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching not returned logs: ' + err.message });
+  }
+});
+
+
+// Update the payment details and recalculate dueAmt
+app.put('/api/payment-details/:regNo', async (req, res) => {
+  const { regNo } = req.params;
+  const { newPaidAmt } = req.body;
+
+  try {
+    const payDetails = await PayDetails.findOne({ regNo });
+    if (!payDetails) {
+      return res.status(404).json({ message: 'Payment details not found' });
+    }
+
+    const additionalPaidAmt = parseFloat(newPaidAmt) || 0;
+    const updatedPaidAmt = (parseFloat(payDetails.paidAmt) || 0) + additionalPaidAmt;
+    const updatedDueAmt = (parseFloat(payDetails.totalAmt) || 0) - updatedPaidAmt;
+
+    payDetails.paidAmt = updatedPaidAmt;
+    payDetails.dueAmt = updatedDueAmt;
+
+    await payDetails.save();
+
+    res.json(payDetails);
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating payment details' });
+  }
+});
+
+// Fetch payment details for users with bookings and due amounts
+app.get('/api/payment-details', async (req, res) => {
+  try {
+    const bookings = await Booking.find(); // Find all bookings
+    const usersWithRooms = await User.find({ regNo: { $in: bookings.map(b => b.regNo) } }); // Find users in a room
+    
+    const paymentDetails = await PayDetails.find({ 
+      regNo: { $in: usersWithRooms.map(user => user.regNo) }, 
+      dueAmt: { $gt: 0 } 
+    });
+
+    res.json(paymentDetails);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching payment details' });
+  }
+});
 
 // Start the server
 const PORT = process.env.PORT || 5000;

@@ -70,6 +70,7 @@ const AppBarContainer = styled(AppBar)(({ theme, open }) => ({
   }),
   marginLeft: open ? drawerWidth : collapsedDrawerWidth,
   width: `calc(100% - ${open ? drawerWidth : collapsedDrawerWidth}px)`,
+  backgroundColor: "#3f51b5",
 }));
 
 const MainContent = styled('main')(({ theme, open }) => ({
@@ -95,7 +96,7 @@ const ToggleButtonContainer = styled(Box)(({ theme }) => ({
   color: '#000',
   cursor: 'pointer',
   '&:hover': {
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: "#3f51b5",
     color: '#fff',
   },
 }));
@@ -196,6 +197,7 @@ const UserDashboard = () => {
     { text: 'Dashboard', icon: <HomeIcon />, path: 'dashboard', state: { regNo: authState.username } },
     { text: 'Log Book', icon: <AccountCircleIcon />, path: 'logbook', state: { regNo: authState.username } },
     { text: 'Log Entries', icon: <SettingsIcon />, path: 'logentries', state: { regNo: authState.username } },
+    { text: 'Complaints Box', icon: <SettingsIcon />, path: 'compbox', state: { regNo: authState.username } },
   ], [authState.username]);
 
   return (
@@ -227,15 +229,7 @@ const UserDashboard = () => {
             User Dashboard
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
-          <Search>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Search…"
-              inputProps={{ 'aria-label': 'search' }}
-            />
-          </Search>
+          
           <Button
             color="inherit"
             startIcon={<AccountCircleIcon />}

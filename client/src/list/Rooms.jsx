@@ -4,6 +4,8 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, IconButton, Modal, Box, TextField
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const modalStyle = {
   position: 'absolute',
@@ -30,6 +32,7 @@ const Rooms = () => {
         setRooms(response.data);
       } catch (error) {
         console.error('Error fetching rooms:', error);
+        toast.error('Failed to fetch rooms');
       }
     };
     fetchRooms();
@@ -68,10 +71,11 @@ const Rooms = () => {
 
       await axios.post('http://localhost:5000/api/payDetails', paymentPayload);
 
-      console.log('Booking and payment processed');
+      toast.success('Booking and payment processed successfully');
       handleClose();
     } catch (error) {
       console.error('Error processing booking:', error);
+      toast.error('Failed to process booking');
     }
   };
 
@@ -79,8 +83,10 @@ const Rooms = () => {
     try {
       await axios.delete(`http://localhost:5000/api/rooms/${roomId}`);
       setRooms(rooms.filter(room => room._id !== roomId));
+      toast.success('Room deleted successfully');
     } catch (error) {
       console.error('Error deleting room:', error);
+      toast.error('Failed to delete room');
     }
   };
 
@@ -148,6 +154,8 @@ const Rooms = () => {
           </Button>
         </Box>
       </Modal>
+
+      <ToastContainer />
     </div>
   );
 };

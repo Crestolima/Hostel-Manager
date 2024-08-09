@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import { Box, Paper, Typography, CircularProgress, TextField, Button } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const LogFormCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -13,8 +15,7 @@ const LogFormCard = styled(Paper)(({ theme }) => ({
   boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
   transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
   '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.2)',
+    // Add hover effects if needed
   },
 }));
 
@@ -70,8 +71,10 @@ const LogForm = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setIsBack(true);
+      toast.success('Logged out successfully!');
     } catch (error) {
       console.error('Error updating outTime:', error);
+      toast.error('Error logging out. Please try again.');
     }
   };
 
@@ -85,8 +88,10 @@ const LogForm = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setIsBack(false);
+      toast.success('Logged back in successfully!');
     } catch (error) {
       console.error('Error updating inTime:', error);
+      toast.error('Error logging back in. Please try again.');
     }
   };
 
@@ -139,6 +144,7 @@ const LogForm = () => {
           </Button>
         )}
       </LogFormCard>
+      <ToastContainer />
     </Box>
   );
 };
